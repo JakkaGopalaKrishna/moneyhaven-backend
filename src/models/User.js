@@ -38,11 +38,24 @@ const userSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    lastLogin: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
   }
 );
+
+userSchema.virtual('profileCompletion').get(function() {
+  let completion = 0;
+  if (this.firstName && this.lastName) completion += 40;
+  if (this.isVerified) completion += 30;
+  if (this.avatar) completion += 30;
+  return completion;
+});
 
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);

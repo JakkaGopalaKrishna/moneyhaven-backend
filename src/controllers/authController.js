@@ -175,6 +175,9 @@ const login = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
 
   if (user && (await user.matchPassword(password))) {
+    user.lastLogin = new Date();
+    await user.save();
+
     const token = generateToken(user._id);
 
     res.json({
