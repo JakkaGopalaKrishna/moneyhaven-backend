@@ -110,6 +110,7 @@ const getTransactions = asyncHandler(async (req, res) => {
 
   const total = await Transaction.countDocuments(query);
   const transactions = await Transaction.find(query)
+    .populate('categoryId', 'name color icon isDefault isActive')
     .sort(sortObj)
     .skip(skip)
     .limit(limitNum);

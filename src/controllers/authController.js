@@ -8,7 +8,115 @@ const sanitizeUser = require('../utils/sanitizeUser');
 const { sendOtpEmail } = require('../services/emailService');
 const bcrypt = require('bcryptjs');
 
-// ... (other methods unchanged)
+// @desc    Send OTP
+// @route   POST /api/auth/send-otp
+// @access  Public
+const sendOtp = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  // Prevent Existing Users from Requesting OTP
+  const userExists = await User.findOne({ email });
+  if (userExists) {
+    res.status(400);
+    throw new Error('Account already exists. Please login.');
+  }
+
+  // Rate Limiting Logic
+  let tracker = await OtpTracker.findOne({ email });
+  const now = new Date();
+
+  if (tracker) {
+    // Check 60s cooldown
+    const secondsSinceLast = (now - tracker.lastRequestAt) / 1000;
+    if (secondsSinceLast < 60) {
+      res.status(429);
+      throw new Error('Please wait 60 seconds before requesting another OTP.');
+    }
+
+    // Check max 3 requests per 10 mins
+    if (tracker.count >= 3) {
+      res.status(429);
+      throw new Error('Please wait before requesting another OTP.');
+    }
+
+    tracker.count += 1;
+    tracker.lastRequestAt = now;
+    await tracker.save();
+  } else {
+    await OtpTracker.create({ email, count: 1 });
+  }
+
+  // Generate 6-digit OTP
+  const generatedOtp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  // Calculate Expiry (from ENV or default 5 mins)
+  const expiryMinutes = parseInt(process.env.OTP_EXPIRY_MINUTES) || 5;
+  const expiresAt = new Date(now.getTime() + expiryMinutes * 60000);
+
+  // Remove existing OTP for this email
+  await Otp.deleteMany({ email });
+
+  // Create new OTP
+  await Otp.create({
+    email,
+    otp: generatedOtp,
+    expiresAt,
+  });
+
+  // Send Email
+  await sendOtpEmail(email, generatedOtp);
+
+  res.json({
+    success: true,
+    message: 'OTP sent successfully',
+  });
+});
+
+// @desc    Verify OTP
+// @route   POST /api/auth/verify-otp
+// @access  Public
+const verifyOtp = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body;
+
+  const otpRecord = await Otp.findOne({ email });
+
+  if (!otpRecord) {
+    res.status(400);
+    throw new Error('OTP not found or expired. Please request a new one.');
+  }
+
+  // Check attempts
+  if (otpRecord.attempts >= 5) {
+    await Otp.deleteMany({ email });
+    res.status(400);
+    throw new Error('Too many failed attempts. OTP invalidated. Please request a new one.');
+  }
+
+  // Increment attempts
+  otpRecord.attempts += 1;
+
+  // Verify OTP
+  const isMatch = await otpRecord.matchOtp(otp);
+
+  if (!isMatch) {
+    await otpRecord.save();
+    res.status(400);
+    throw new Error('Invalid OTP');
+  }
+
+  // Success
+  otpRecord.isVerified = true;
+  await otpRecord.save();
+
+  res.json({
+    success: true,
+    message: 'OTP verified successfully',
+  });
+});
+
+// @desc    Register user
+// @route   POST /api/auth/register
+// @access  Public
 const register = asyncHandler(async (req, res) => {
   const { firstName, lastName, email, password, openingBalance } = req.body;
 
