@@ -165,14 +165,17 @@ const getIncomeAnalytics = async (userId) => {
 
   const categoryMap = {};
   const monthlyTrendMap = {};
+  const heatmapMap = {};
   
   incomes.forEach(t => {
     const catName = t.category ? t.category.name : 'Uncategorized';
     const monthStr = dayjs(t.transactionDate).format('YYYY-MM');
+    const dateStr = dayjs(t.transactionDate).format('YYYY-MM-DD');
     const amt = t.amount;
 
     categoryMap[catName] = (categoryMap[catName] || 0) + amt;
     monthlyTrendMap[monthStr] = (monthlyTrendMap[monthStr] || 0) + amt;
+    heatmapMap[dateStr] = (heatmapMap[dateStr] || 0) + amt;
   });
 
   const incomeSources = Object.keys(categoryMap).map(cat => ({
@@ -183,12 +186,14 @@ const getIncomeAnalytics = async (userId) => {
   const top5Categories = incomeSources.slice(0, 5);
   const topIncomeCategory = incomeSources.length > 0 ? incomeSources[0].category : null;
   const monthlyIncomeTrend = Object.keys(monthlyTrendMap).map(month => ({ month, amount: monthlyTrendMap[month] })).sort((a, b) => a.month.localeCompare(b.month));
+  const dailyIncomeTrend = Object.keys(heatmapMap).map(date => ({ date, amount: heatmapMap[date] })).sort((a, b) => new Date(a.date) - new Date(b.date));
 
   const result = {
     incomeSources,
     top5Categories,
     topIncomeCategory,
-    monthlyIncomeTrend
+    monthlyIncomeTrend,
+    dailyIncomeTrend
   };
 
   cacheService.set(cacheKey, result);
