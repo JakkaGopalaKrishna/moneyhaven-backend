@@ -1,16 +1,24 @@
 const Transaction = require('../models/Transaction');
+const Category = require('../models/Category');
 const asyncHandler = require('../utils/asyncHandler');
+const notificationService = require('../services/notificationService');
 
 // @desc    Create new transaction
 // @route   POST /api/transactions
 // @access  Private
 const createTransaction = asyncHandler(async (req, res) => {
-  const { title, amount, type, categoryId, categoryNameSnapshot, paymentMethod, description, transactionDate } = req.body;
+  const { title, amount, type, categoryId, paymentMethod, description, transactionDate } = req.body;
 
   // Basic validation
-  if (!title || !amount || !type || !categoryId || !categoryNameSnapshot || !transactionDate) {
+  if (!title || !amount || !type || !categoryId || !transactionDate) {
     res.status(400);
     throw new Error('Please provide all required fields');
+  }
+
+  const category = await Category.findById(categoryId);
+  if (!category) {
+    res.status(404);
+    throw new Error('Category not found');
   }
 
   if (amount <= 0) {

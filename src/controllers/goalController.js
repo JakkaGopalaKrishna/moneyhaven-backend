@@ -139,46 +139,38 @@ const deleteGoal = asyncHandler(async (req, res) => {
   });
 });
 
-// @desc    Add savings to goal
-// @route   POST /api/goals/:id/savings
+// @desc    Add contribution to a goal
+// @route   POST /api/goals/:id/contributions
 // @access  Private
-const addSavings = asyncHandler(async (req, res) => {
+const addContribution = asyncHandler(async (req, res) => {
   const { amount, note, contributionDate } = req.body;
 
-  if (!amount || amount <= 0) {
-    res.status(400);
-    throw new Error('Please provide a valid contribution amount');
-  }
-
-  const goal = await SavingsGoal.findOne({ _id: req.params.id, userId: req.user._id, isArchived: false });
+  const goal = await SavingsGoal.findOne({ _id: req.params.id, userId: req.user._id });
 
   if (!goal) {
     res.status(404);
     throw new Error('Goal not found');
   }
 
-  if (goal.status === 'Completed') {
+  if (goal.status === 'Completed' || goal.isArchived) {
     res.status(400);
-    throw new Error('Cannot add savings to a completed goal');
+    throw new Error('Cannot add contribution to a completed or archived goal');
   }
 
-  const remainingAmount = goal.targetAmount - goal.savedAmount;
-
-  if (amount > remainingAmount) {
+  const remaining = goal.targetAmount - goal.savedAmount;
+  if (amount > remaining) {
     res.status(400);
-    throw new Error(`Contribution exceeds remaining goal amount. You only need ₹${remainingAmount} to complete this goal.`);
+    throw new Error(`Contribution amount (₹${amount}) exceeds remaining target (₹${remaining})`);
   }
 
-  // Create contribution
   const contribution = await GoalContribution.create({
     goalId: goal._id,
     userId: req.user._id,
     amount,
     note,
-    contributionDate: contributionDate || Date.now()
+    contributionDate: contributionDate || new Date()
   });
 
-  // Update Goal
   goal.savedAmount += amount;
   
   if (goal.savedAmount >= goal.targetAmount) {

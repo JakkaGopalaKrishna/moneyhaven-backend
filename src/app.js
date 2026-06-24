@@ -13,6 +13,7 @@ const goalRoutes = require('./routes/goalRoutes');
 const analyticsRoutes = require('./routes/analyticsRoutes');
 const reportRoutes = require('./routes/reportRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const reportScheduleRoutes = require('./routes/reportScheduleRoutes');
 
 const app = express();
 
@@ -34,6 +35,7 @@ app.use('/api/goals', goalRoutes);
 app.use('/api/analytics', analyticsRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/schedules', reportScheduleRoutes);
 
 // Global error handler
 app.use(errorHandler);
