@@ -50,6 +50,33 @@ const register = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Login user
+// @route   POST /api/auth/login
+// @access  Public
+const login = asyncHandler(async (req, res) => {
+  const { email, password } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (user && (await user.matchPassword(password))) {
+    const token = generateToken(user._id);
+
+    const userResponse = user.toObject();
+    delete userResponse.password;
+    delete userResponse.__v;
+
+    res.json({
+      success: true,
+      token,
+      user: userResponse,
+    });
+  } else {
+    res.status(401);
+    throw new Error('Invalid email or password');
+  }
+});
+
 module.exports = {
   register,
+  login,
 };
