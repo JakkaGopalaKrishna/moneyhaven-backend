@@ -119,9 +119,41 @@ const deleteAvatar = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Change user password
+// @route   PUT /api/users/change-password
+// @access  Private
+const changePassword = asyncHandler(async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+
+  const user = await User.findById(req.user._id);
+
+  if (user && (await user.matchPassword(currentPassword))) {
+    // Validate strong password
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d\w\W]{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      res.status(400);
+      throw new Error('Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number');
+    }
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
+    
+    await user.save();
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully',
+    });
+  } else {
+    res.status(401);
+    throw new Error('Invalid current password');
+  }
+});
+
 module.exports = {
   getProfile,
   updateProfile,
   uploadAvatar,
   deleteAvatar,
+  changePassword,
 };

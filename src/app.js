@@ -13,9 +13,11 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes');
 
 // Routes will be mounted here
 app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
 
 // Global error handler
 app.use(errorHandler);
