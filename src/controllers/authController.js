@@ -1,6 +1,7 @@
 const User = require('../models/User');
 const asyncHandler = require('../utils/asyncHandler');
 const generateToken = require('../utils/generateToken');
+const sanitizeUser = require('../utils/sanitizeUser');
 const bcrypt = require('bcryptjs');
 
 // @desc    Register user
@@ -32,17 +33,11 @@ const register = asyncHandler(async (req, res) => {
 
   if (user) {
     const token = generateToken(user._id);
-    
-    // Note: The response standardization (removing password, __v) will be fully handled in a later commit,
-    // but we will do it here to avoid sending it in the first place as a good practice.
-    const userResponse = user.toObject();
-    delete userResponse.password;
-    delete userResponse.__v;
 
     res.status(201).json({
       success: true,
       token,
-      user: userResponse,
+      user: sanitizeUser(user),
     });
   } else {
     res.status(400);
@@ -61,14 +56,10 @@ const login = asyncHandler(async (req, res) => {
   if (user && (await user.matchPassword(password))) {
     const token = generateToken(user._id);
 
-    const userResponse = user.toObject();
-    delete userResponse.password;
-    delete userResponse.__v;
-
     res.json({
       success: true,
       token,
-      user: userResponse,
+      user: sanitizeUser(user),
     });
   } else {
     res.status(401);
@@ -82,7 +73,7 @@ const login = asyncHandler(async (req, res) => {
 const getMe = asyncHandler(async (req, res) => {
   res.json({
     success: true,
-    user: req.user,
+    user: sanitizeUser(req.user),
   });
 });
 
