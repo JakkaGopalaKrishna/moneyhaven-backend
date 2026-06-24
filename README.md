@@ -23,9 +23,26 @@ Create a `.env` file in the root directory:
 PORT=5000
 MONGO_URI=mongodb://localhost:27017/moneyhaven
 JWT_SECRET=supersecretjwtkey123
+
+# Email OTP Setup
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASS=your-app-password
+OTP_EXPIRY_MINUTES=5
 ```
 
-## Authentication Flow
+### Gmail App Password Setup
+1. Go to your Google Account -> Security.
+2. Enable 2-Step Verification.
+3. Search for "App Passwords".
+4. Create a new App Password (select "Other" and name it "MoneyHaven").
+5. Copy the 16-character password into `EMAIL_PASS`.
+
+## Authentication & OTP Flow
+1. **Send OTP:** User submits email to `/api/auth/send-otp`. System checks if email is registered. Generates 6-digit OTP, hashes it, and saves to MongoDB with TTL. Sends email.
+2. **Rate Limiting:** Maximum 3 OTP requests per 10 minutes, with a 60-second cooldown between requests.
+3. **Verify OTP:** User submits email and OTP to `/api/auth/verify-otp`. System checks attempts (max 5) and matches hash. Marks OTP record as `isVerified: true`.
+4. **Register:** User submits full details to `/api/auth/register`. System checks for a verified OTP. If successful, creates user, issues JWT, and deletes OTP record.
+5. **Login:** Standard JWT authentication.
 1. **Register/Login:** The user sends credentials to `/api/auth/register` or `/api/auth/login`.
 2. **Token Generation:** Upon success, the server returns a JWT in the JSON response (along with the sanitized user object).
 3. **Storage:** The frontend stores the JWT in Redux Persist + localStorage (no cookies are used).
