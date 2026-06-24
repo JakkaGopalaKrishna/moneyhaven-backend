@@ -6,7 +6,7 @@ const {
   getGoalById,
   updateGoal,
   deleteGoal,
-  addSavings,
+  addContribution,
   getGoalProgress,
   getGoalStats,
   getGoalInsights,
@@ -26,7 +26,7 @@ router.route('/:id')
   .put(protect, updateGoal)
   .delete(protect, deleteGoal);
 
-router.route('/:id/savings')
-  .post(protect, addSavings);
+router.route('/:id/contributions')
+  .post(protect, addContribution);
 
 module.exports = router;

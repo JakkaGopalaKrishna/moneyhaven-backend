@@ -358,7 +358,7 @@ module.exports = {
   getGoalById,
   updateGoal,
   deleteGoal,
-  addSavings,
+  addContribution,
   getGoalProgress,
   getGoalStats,
   getGoalInsights,
