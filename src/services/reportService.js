@@ -136,7 +136,7 @@ const exportToPdf = async (userId, reportType, filters, res) => {
   doc.moveDown(2);
   
   doc.fontSize(12).fillColor('#555555');
-  doc.text(`Generated For: ${user.name} (${user.email})`, { align: 'center' });
+  doc.text(`Generated For: ${user.firstName} ${user.lastName} (${user.email})`, { align: 'center' });
   doc.text(`Generated Date: ${dayjs().format('MMMM D, YYYY')}`, { align: 'center' });
   if (filters.startDate && filters.endDate) {
     doc.text(`Reporting Period: ${dayjs(filters.startDate).format('MMM D, YYYY')} to ${dayjs(filters.endDate).format('MMM D, YYYY')}`, { align: 'center' });
@@ -150,9 +150,9 @@ const exportToPdf = async (userId, reportType, filters, res) => {
   doc.fontSize(12).fillColor('#000000');
   
   doc.text(`Total Transactions: ${data.totalRecords}`);
-  doc.text(`Total Income: ₹${data.totalIncome}`);
-  doc.text(`Total Expenses: ₹${data.totalExpenses}`);
-  doc.fillColor(data.netSavings >= 0 ? '#52c41a' : '#f5222d').text(`Net Savings: ₹${data.netSavings}`);
+  doc.text(`Total Income: Rs.${data.totalIncome}`);
+  doc.text(`Total Expenses: Rs.${data.totalExpenses}`);
+  doc.fillColor(data.netSavings >= 0 ? '#52c41a' : '#f5222d').text(`Net Savings: Rs.${data.netSavings}`);
   doc.fillColor('#000000');
 
   // Executive Summary Extras
@@ -200,7 +200,7 @@ const exportToPdf = async (userId, reportType, filters, res) => {
     doc.text(row.date, 50, yPosition);
     doc.fillColor(row.type === 'income' ? '#52c41a' : '#f5222d').text(row.type, 150, yPosition);
     doc.fillColor('#000000').text(row.category, 250, yPosition);
-    doc.text(`₹${row.amount}`, 350, yPosition);
+    doc.text(`Rs.${row.amount}`, 350, yPosition);
     doc.text(row.paymentMethod, 450, yPosition);
 
     yPosition += 20;
