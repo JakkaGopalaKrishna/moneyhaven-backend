@@ -30,8 +30,13 @@ const userSchema = new mongoose.Schema(
     },
     openingBalance: {
       type: Number,
+      required: true,
       default: 0,
       min: 0,
+    },
+    isVerified: {
+      type: Boolean,
+      default: false,
     },
   },
   {
