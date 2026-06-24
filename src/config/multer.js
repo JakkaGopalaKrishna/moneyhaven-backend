@@ -1,23 +1,25 @@
 const multer = require('multer');
+const { v2: cloudinary } = require('cloudinary');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const path = require('path');
-const fs = require('fs');
 
-// Ensure uploads directory exists
-const uploadDir = path.join(__dirname, '../../uploads/avatars');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Configure Cloudinary
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
 // Storage configuration
-const storage = multer.diskStorage({
-  destination(req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename(req, file, cb) {
-    // Format: userId_timestamp.ext
-    const ext = path.extname(file.originalname).toLowerCase();
-    const userId = req.user ? req.user._id.toString() : 'unknown';
-    cb(null, `${userId}_${Date.now()}${ext}`);
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: 'moneyhaven/avatars',
+    allowed_formats: ['jpg', 'png', 'jpeg', 'webp'],
+    public_id: (req, file) => {
+      const userId = req.user ? req.user._id.toString() : 'unknown';
+      return `${userId}_${Date.now()}`;
+    },
   },
 });
 
@@ -40,4 +42,4 @@ const upload = multer({
   },
 });
 
-module.exports = upload;
+module.exports = { upload, cloudinary };

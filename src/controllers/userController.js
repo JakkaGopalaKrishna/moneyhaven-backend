@@ -52,6 +52,21 @@ const updateProfile = asyncHandler(async (req, res) => {
 
 const fs = require('fs');
 const path = require('path');
+const { cloudinary } = require('../config/multer');
+
+const getCloudinaryPublicId = (url) => {
+  if (!url || !url.includes('cloudinary.com')) return null;
+  const parts = url.split('/');
+  const filePart = parts[parts.length - 1];
+  const folderPart = parts[parts.length - 2];
+  const rootFolderPart = parts[parts.length - 3];
+  
+  if (rootFolderPart === 'moneyhaven' && folderPart === 'avatars') {
+    const filenameWithoutExt = filePart.split('.')[0];
+    return `moneyhaven/avatars/${filenameWithoutExt}`;
+  }
+  return null;
+};
 
 // @desc    Upload user avatar
 // @route   POST /api/users/avatar
@@ -71,14 +86,19 @@ const uploadAvatar = asyncHandler(async (req, res) => {
 
   // Delete old avatar if it exists
   if (user.avatar) {
-    const oldAvatarPath = path.join(__dirname, '../../', user.avatar);
-    if (fs.existsSync(oldAvatarPath)) {
-      fs.unlinkSync(oldAvatarPath);
+    const publicId = getCloudinaryPublicId(user.avatar);
+    if (publicId) {
+      await cloudinary.uploader.destroy(publicId);
+    } else {
+      const oldAvatarPath = path.join(__dirname, '../../', user.avatar);
+      if (fs.existsSync(oldAvatarPath)) {
+        fs.unlinkSync(oldAvatarPath);
+      }
     }
   }
 
   // Update user with new avatar URL
-  const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+  const avatarUrl = req.file.path; // Cloudinary URL
   user.avatar = avatarUrl;
   const updatedUser = await user.save();
 
@@ -101,9 +121,14 @@ const deleteAvatar = asyncHandler(async (req, res) => {
   }
 
   if (user.avatar) {
-    const oldAvatarPath = path.join(__dirname, '../../', user.avatar);
-    if (fs.existsSync(oldAvatarPath)) {
-      fs.unlinkSync(oldAvatarPath);
+    const publicId = getCloudinaryPublicId(user.avatar);
+    if (publicId) {
+      await cloudinary.uploader.destroy(publicId);
+    } else {
+      const oldAvatarPath = path.join(__dirname, '../../', user.avatar);
+      if (fs.existsSync(oldAvatarPath)) {
+        fs.unlinkSync(oldAvatarPath);
+      }
     }
     user.avatar = '';
     const updatedUser = await user.save();
