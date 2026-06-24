@@ -62,7 +62,6 @@ const register = asyncHandler(async (req, res) => {
     ];
     await Category.insertMany(defaultCategories);
 
-  if (user) {
     // Delete OTP record after successful registration
     await Otp.deleteMany({ email });
 
