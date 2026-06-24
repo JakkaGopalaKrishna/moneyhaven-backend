@@ -86,8 +86,22 @@ const getMe = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Logout user
+// @route   POST /api/auth/logout
+// @access  Public
+const logout = asyncHandler(async (req, res) => {
+  // Since we are not using HTTP-only cookies and only passing the token in the header,
+  // logout primarily happens on the client by deleting the token.
+  // We provide this endpoint to fulfill the requirement and for future server-side invalidation if needed.
+  res.json({
+    success: true,
+    message: 'Logged out successfully',
+  });
+});
+
 module.exports = {
   register,
   login,
   getMe,
+  logout,
 };
