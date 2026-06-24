@@ -37,7 +37,7 @@ const createTransaction = asyncHandler(async (req, res) => {
     amount,
     type,
     categoryId,
-    categoryNameSnapshot,
+    categoryNameSnapshot: category.name,
     paymentMethod,
     description,
     transactionDate,
