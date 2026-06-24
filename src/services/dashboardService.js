@@ -54,6 +54,64 @@ const getDashboardSummaryData = async (userId) => {
     if (t._id === 'expense') monthlyExpenses = t.total;
   });
 
+  const Budget = require('../models/Budget');
+
+  // Budget Summary for current month
+  const targetMonth = new Date().getMonth() + 1;
+  const targetYear = new Date().getFullYear();
+  const activeBudgets = await Budget.find({ userId: user._id, month: targetMonth, year: targetYear, isActive: true }).populate('categoryId');
+
+  let totalBudgetAmount = 0;
+  let totalBudgetSpending = 0;
+  let mostOverspent = null;
+  let highestRemaining = null;
+  let totalHealthScore = 0;
+
+  if (activeBudgets.length > 0) {
+    let maxOverspentPct = 0;
+    let maxRemainingAmt = -1;
+
+    for (const budget of activeBudgets) {
+      totalBudgetAmount += budget.amount;
+      
+      const spentResult = await Transaction.aggregate([
+        {
+          $match: {
+            userId: user._id,
+            categoryId: budget.categoryId._id,
+            isDeleted: false,
+            transactionDate: { $gte: startOfMonth, $lte: new Date(targetYear, targetMonth, 0, 23, 59, 59) },
+            type: 'expense'
+          }
+        },
+        { $group: { _id: null, totalSpent: { $sum: '$amount' } } }
+      ]);
+      const spent = spentResult.length > 0 ? spentResult[0].totalSpent : 0;
+      totalBudgetSpending += spent;
+
+      const remaining = Math.max(0, budget.amount - spent);
+      const percentageUsed = (spent / budget.amount) * 100;
+
+      if (percentageUsed > maxOverspentPct) {
+        maxOverspentPct = percentageUsed;
+        mostOverspent = { category: budget.categoryId.name, percentage: percentageUsed };
+      }
+
+      if (remaining > maxRemainingAmt) {
+        maxRemainingAmt = remaining;
+        highestRemaining = { category: budget.categoryId.name, amount: remaining };
+      }
+
+      let score = 100;
+      if (percentageUsed > 100) score = 0;
+      else if (percentageUsed > 80) score = 100 - ((percentageUsed - 80) * 5);
+      totalHealthScore += score;
+    }
+    totalHealthScore = Math.round(totalHealthScore / activeBudgets.length);
+  } else {
+    totalHealthScore = 100;
+  }
+
   const currentBalance = calculateCurrentBalance(user.openingBalance, totalIncome, totalExpenses);
   const savings = calculateSavings(totalIncome, totalExpenses);
   const healthScore = calculateFinancialHealth(); // Future phases can make this dynamic
@@ -69,6 +127,15 @@ const getDashboardSummaryData = async (userId) => {
     monthlyExpenses,
     memberSince: user.createdAt,
     healthScore,
+    budgetSummary: {
+      totalBudgetAmount,
+      totalBudgetSpending,
+      overallRemainingBudget: Math.max(0, totalBudgetAmount - totalBudgetSpending),
+      overallBudgetUsagePercentage: totalBudgetAmount > 0 ? parseFloat(((totalBudgetSpending / totalBudgetAmount) * 100).toFixed(2)) : 0,
+      mostOverspent,
+      highestRemaining,
+      budgetHealthScore: totalHealthScore,
+    }
   };
 };
 
