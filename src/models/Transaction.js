@@ -67,7 +67,7 @@ const transactionSchema = new mongoose.Schema(
 );
 
 // Pre-save hook to generate transactionId
-transactionSchema.pre('save', async function (next) {
+transactionSchema.pre('save', function (next) {
   if (!this.transactionId) {
     const year = new Date().getFullYear();
     // Generate a random 6 digit string, or we could use sequence. 
