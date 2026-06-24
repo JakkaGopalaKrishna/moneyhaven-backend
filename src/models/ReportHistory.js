@@ -19,12 +19,8 @@ const reportHistorySchema = new mongoose.Schema(
       enum: ['PDF', 'CSV', 'Excel', 'Preview'],
     },
     filters: {
-      startDate: Date,
-      endDate: Date,
-      month: Number,
-      year: Number,
-      categoryId: mongoose.Schema.Types.ObjectId,
-      type: String,
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
     },
     fileName: {
       type: String,

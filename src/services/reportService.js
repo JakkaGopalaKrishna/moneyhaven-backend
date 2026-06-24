@@ -123,7 +123,7 @@ const exportToPdf = async (userId, reportType, filters, res) => {
   const fileName = `MoneyHaven_${reportType.replace(/\s+/g, '_')}_${dayjs().format('YYYY-MM-DD')}.pdf`;
 
   // Start PDF Document
-  const doc = new PDFDocument({ margin: 50 });
+  const doc = new PDFDocument({ margin: 50, bufferPages: true });
   
   res.setHeader('Content-disposition', `attachment; filename="${fileName}"`);
   res.setHeader('Content-type', 'application/pdf');
