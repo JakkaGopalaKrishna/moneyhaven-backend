@@ -36,11 +36,22 @@ const registerValidation = validate([
 ]);
 
 const loginValidation = validate([
-  body('email').trim().isEmail().withMessage('Please provide a valid email').normalizeEmail(),
-  body('password').notEmpty().withMessage('Password is required'),
+  body('email', 'Please include a valid email').isEmail(),
+  body('password', 'Password is required').exists(),
+]);
+
+const sendOtpValidation = validate([
+  body('email', 'Please include a valid email').isEmail(),
+]);
+
+const verifyOtpValidation = validate([
+  body('email', 'Please include a valid email').isEmail(),
+  body('otp', 'OTP is required and must be 6 characters').isLength({ min: 6, max: 6 }),
 ]);
 
 module.exports = {
   registerValidation,
   loginValidation,
+  sendOtpValidation,
+  verifyOtpValidation,
 };
