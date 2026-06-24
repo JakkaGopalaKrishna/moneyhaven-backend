@@ -71,6 +71,48 @@ const sendOtp = asyncHandler(async (req, res) => {
   });
 });
 
+// @desc    Verify OTP
+// @route   POST /api/auth/verify-otp
+// @access  Public
+const verifyOtp = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body;
+
+  const otpRecord = await Otp.findOne({ email });
+
+  if (!otpRecord) {
+    res.status(400);
+    throw new Error('OTP not found or expired. Please request a new one.');
+  }
+
+  // Check attempts
+  if (otpRecord.attempts >= 5) {
+    await Otp.deleteMany({ email });
+    res.status(400);
+    throw new Error('Too many failed attempts. OTP invalidated. Please request a new one.');
+  }
+
+  // Increment attempts
+  otpRecord.attempts += 1;
+
+  // Verify OTP
+  const isMatch = await otpRecord.matchOtp(otp);
+
+  if (!isMatch) {
+    await otpRecord.save();
+    res.status(400);
+    throw new Error('Invalid OTP');
+  }
+
+  // Success
+  otpRecord.isVerified = true;
+  await otpRecord.save();
+
+  res.json({
+    success: true,
+    message: 'OTP verified successfully',
+  });
+});
+
 // @desc    Register user
 // @route   POST /api/auth/register
 // @access  Public
@@ -159,6 +201,7 @@ const logout = asyncHandler(async (req, res) => {
 
 module.exports = {
   sendOtp,
+  verifyOtp,
   register,
   login,
   getMe,
