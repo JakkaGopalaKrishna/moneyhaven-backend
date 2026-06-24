@@ -116,6 +116,34 @@ const getDashboardSummaryData = async (userId) => {
   const savings = calculateSavings(totalIncome, totalExpenses);
   const healthScore = calculateFinancialHealth(); // Future phases can make this dynamic
 
+  const SavingsGoal = require('../models/SavingsGoal');
+  const goals = await SavingsGoal.find({ userId: user._id, isArchived: false });
+
+  let totalGoals = goals.length;
+  let activeGoals = 0;
+  let completedGoals = 0;
+  let totalGoalSaved = 0;
+  let totalGoalTarget = 0;
+
+  goals.forEach(g => {
+    totalGoalSaved += g.savedAmount;
+    totalGoalTarget += g.targetAmount;
+    if (g.status === 'Completed') completedGoals++;
+    if (g.status === 'Active') activeGoals++;
+  });
+
+  const overallGoalProgress = totalGoalTarget > 0 ? (totalGoalSaved / totalGoalTarget) * 100 : 0;
+
+  // Top 3 active goals (Nearest Deadline)
+  const activeGoalsList = goals.filter(g => g.status === 'Active');
+  activeGoalsList.sort((a, b) => new Date(a.targetDate) - new Date(b.targetDate));
+  const topGoals = activeGoalsList.slice(0, 3).map(g => ({
+    title: g.title,
+    progressPercentage: parseFloat(((g.savedAmount / g.targetAmount) * 100).toFixed(2)),
+    targetDate: g.targetDate,
+    category: g.category
+  }));
+
   return {
     openingBalance: user.openingBalance,
     currentBalance,
@@ -135,6 +163,15 @@ const getDashboardSummaryData = async (userId) => {
       mostOverspent,
       highestRemaining,
       budgetHealthScore: totalHealthScore,
+    },
+    savingsGoalsSummary: {
+      totalGoals,
+      activeGoals,
+      completedGoals,
+      totalSaved: totalGoalSaved,
+      totalTarget: totalGoalTarget,
+      overallProgress: parseFloat(overallGoalProgress.toFixed(2)),
+      topGoals
     }
   };
 };
