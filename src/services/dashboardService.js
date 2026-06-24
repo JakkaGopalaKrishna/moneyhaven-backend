@@ -114,7 +114,10 @@ const getDashboardSummaryData = async (userId) => {
 
   const currentBalance = calculateCurrentBalance(user.openingBalance, totalIncome, totalExpenses);
   const savings = calculateSavings(totalIncome, totalExpenses);
-  const healthScore = calculateFinancialHealth(); // Future phases can make this dynamic
+  
+  const analyticsService = require('./analyticsService');
+  const healthData = await analyticsService.getFinancialHealth(userId);
+  const healthScore = healthData.score;
 
   const SavingsGoal = require('../models/SavingsGoal');
   const goals = await SavingsGoal.find({ userId: user._id, isArchived: false });
