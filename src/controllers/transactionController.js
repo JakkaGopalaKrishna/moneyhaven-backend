@@ -2,6 +2,7 @@ const Transaction = require('../models/Transaction');
 const Category = require('../models/Category');
 const asyncHandler = require('../utils/asyncHandler');
 const notificationService = require('../services/notificationService');
+const cacheService = require('../services/analyticsCacheService');
 
 // @desc    Create new transaction
 // @route   POST /api/transactions
@@ -42,6 +43,9 @@ const createTransaction = asyncHandler(async (req, res) => {
     description,
     transactionDate,
   });
+
+  // Invalidate analytics cache since underlying data changed
+  cacheService.invalidate(req.user._id);
 
   res.status(201).json({
     success: true,
@@ -192,6 +196,9 @@ const updateTransaction = asyncHandler(async (req, res) => {
 
   const updatedTransaction = await transaction.save();
 
+  // Invalidate analytics cache
+  cacheService.invalidate(req.user._id);
+
   res.json({
     success: true,
     data: updatedTransaction,
@@ -215,6 +222,9 @@ const deleteTransaction = asyncHandler(async (req, res) => {
 
   transaction.isDeleted = true;
   await transaction.save();
+
+  // Invalidate analytics cache
+  cacheService.invalidate(req.user._id);
 
   res.json({
     success: true,
