@@ -127,6 +127,14 @@ const register = asyncHandler(async (req, res) => {
     throw new Error('User already exists');
   }
 
+  // Check if OTP is verified
+  const otpRecord = await Otp.findOne({ email, isVerified: true });
+  
+  if (!otpRecord) {
+    res.status(400);
+    throw new Error('Email not verified. Please verify your email first.');
+  }
+
   // Hash password
   const salt = await bcrypt.genSalt(10);
   const hashedPassword = await bcrypt.hash(password, salt);
@@ -138,9 +146,13 @@ const register = asyncHandler(async (req, res) => {
     email,
     password: hashedPassword,
     openingBalance: openingBalance || 0,
+    isVerified: true, // User is verified at registration
   });
 
   if (user) {
+    // Delete OTP record after successful registration
+    await Otp.deleteMany({ email });
+
     const token = generateToken(user._id);
 
     res.status(201).json({
