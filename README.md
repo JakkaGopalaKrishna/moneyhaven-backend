@@ -78,3 +78,10 @@ All routes below require `Authorization: Bearer <token>` header.
   - Form-Data: `avatar` (file).
 * **DELETE `/api/users/avatar`**
   - Deletes the current avatar image.
+
+### Dashboard
+All routes below require `Authorization: Bearer <token>` header.
+* **GET `/api/dashboard/summary`**
+  - Retrieves aggregated financial summaries (Current Balance, Total Income, etc.) and Health Scores.
+* **GET `/api/dashboard/stats`**
+  - Retrieves detailed statistical data for charting (e.g., income by category, recent transactions).
