@@ -5,10 +5,10 @@ const asyncHandler = require('../utils/asyncHandler');
 // @route   POST /api/transactions
 // @access  Private
 const createTransaction = asyncHandler(async (req, res) => {
-  const { title, amount, type, category, paymentMethod, description, transactionDate } = req.body;
+  const { title, amount, type, categoryId, categoryNameSnapshot, paymentMethod, description, transactionDate } = req.body;
 
   // Basic validation
-  if (!title || !amount || !type || !category || !transactionDate) {
+  if (!title || !amount || !type || !categoryId || !categoryNameSnapshot || !transactionDate) {
     res.status(400);
     throw new Error('Please provide all required fields');
   }
@@ -28,7 +28,8 @@ const createTransaction = asyncHandler(async (req, res) => {
     title,
     amount,
     type,
-    category,
+    categoryId,
+    categoryNameSnapshot,
     paymentMethod,
     description,
     transactionDate,
@@ -46,7 +47,7 @@ const createTransaction = asyncHandler(async (req, res) => {
 const getTransactions = asyncHandler(async (req, res) => {
   const { 
     type, 
-    category, 
+    categoryId, 
     search, 
     startDate, 
     endDate, 
@@ -61,10 +62,13 @@ const getTransactions = asyncHandler(async (req, res) => {
   const query = { userId: req.user._id, isDeleted: false };
 
   if (type) query.type = type;
-  if (category) query.category = category;
+  if (categoryId) query.categoryId = categoryId;
   
   if (search) {
-    query.title = { $regex: search, $options: 'i' };
+    query.$or = [
+      { title: { $regex: search, $options: 'i' } },
+      { categoryNameSnapshot: { $regex: search, $options: 'i' } }
+    ];
   }
 
   // Date range
@@ -156,7 +160,7 @@ const updateTransaction = asyncHandler(async (req, res) => {
     throw new Error('Transaction not found');
   }
 
-  const { title, amount, type, category, paymentMethod, description, transactionDate } = req.body;
+  const { title, amount, type, categoryId, categoryNameSnapshot, paymentMethod, description, transactionDate } = req.body;
 
   if (amount && amount <= 0) {
     res.status(400);
@@ -171,7 +175,8 @@ const updateTransaction = asyncHandler(async (req, res) => {
   transaction.title = title || transaction.title;
   transaction.amount = amount || transaction.amount;
   transaction.type = type || transaction.type;
-  transaction.category = category || transaction.category;
+  if (categoryId) transaction.categoryId = categoryId;
+  if (categoryNameSnapshot) transaction.categoryNameSnapshot = categoryNameSnapshot;
   transaction.paymentMethod = paymentMethod || transaction.paymentMethod;
   transaction.description = description !== undefined ? description : transaction.description;
   transaction.transactionDate = transactionDate || transaction.transactionDate;

@@ -85,3 +85,18 @@ All routes below require `Authorization: Bearer <token>` header.
   - Retrieves aggregated financial summaries (Current Balance, Total Income, etc.) and Health Scores.
 * **GET `/api/dashboard/stats`**
   - Retrieves detailed statistical data for charting (e.g., income by category, recent transactions).
+
+### Transactions
+All routes below require `Authorization: Bearer <token>` header.
+* **POST `/api/transactions`**
+  - Create a new transaction. Body: `title`, `amount`, `type`, `category`, `paymentMethod`, `transactionDate`, `description`.
+* **GET `/api/transactions`**
+  - Get all user transactions with advanced support for `page`, `limit`, `sort`, `startDate`, `endDate`, `minAmount`, `maxAmount`, `search`, `type`, `category`.
+* **GET `/api/transactions/stats`**
+  - Get numerical transaction statistics (total counts, highest income/expense).
+* **GET `/api/transactions/:id`**
+  - Get a single transaction by ID.
+* **PUT `/api/transactions/:id`**
+  - Update a transaction.
+* **DELETE `/api/transactions/:id`**
+  - Soft-delete a transaction.
