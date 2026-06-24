@@ -62,3 +62,19 @@ OTP_EXPIRY_MINUTES=5
   - Returns the current logged-in user. Requires `Authorization: Bearer <token>` header.
 * **POST `/api/auth/logout`**
   - Logs out the user (primarily handled client-side).
+
+### Users
+All routes below require `Authorization: Bearer <token>` header.
+* **GET `/api/users/profile`**
+  - Retrieves the current user's profile information.
+* **PUT `/api/users/profile`**
+  - Updates profile information.
+  - Body: `firstName`, `lastName`, `openingBalance` (optional).
+* **PUT `/api/users/change-password`**
+  - Changes user password.
+  - Body: `currentPassword`, `newPassword`.
+* **POST `/api/users/avatar`**
+  - Uploads a new avatar image.
+  - Form-Data: `avatar` (file).
+* **DELETE `/api/users/avatar`**
+  - Deletes the current avatar image.
