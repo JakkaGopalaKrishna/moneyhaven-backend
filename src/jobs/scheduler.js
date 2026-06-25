@@ -14,10 +14,10 @@ const analyticsService = require('../services/analyticsService');
  * - Checks Financial Health Score
  */
 cron.schedule('0 0 * * *', async () => {
-  console.log('Running Daily Scheduler Tasks...');
+  // console.log('Running Daily Scheduler Tasks...');
   try {
     const users = await User.find({});
-    
+
     for (const user of users) {
       const userId = user._id;
 
@@ -25,7 +25,7 @@ cron.schedule('0 0 * * *', async () => {
       const activeGoals = await SavingsGoal.find({ userId, status: 'Active', isArchived: false });
       for (const goal of activeGoals) {
         if (!goal.targetDate) continue;
-        
+
         const daysLeft = dayjs(goal.targetDate).diff(dayjs(), 'day');
         if ([30, 14, 7, 1].includes(daysLeft)) {
           // Send reminder notification
@@ -46,7 +46,7 @@ cron.schedule('0 0 * * *', async () => {
       // 2. Financial Health Alert
       const analytics = await analyticsService.getOverviewAnalytics(userId);
       const healthScore = analytics.healthScore || 0;
-      
+
       if (healthScore < 50) {
         // Send critical health alert (deduplicate by checking existing this month)
         const startOfMonth = dayjs().startOf('month').toDate();
@@ -100,15 +100,15 @@ cron.schedule('* * * * *', async () => {
           // Generate report data directly (Simulated generation, since we don't have a file stream available without a Response object)
           // In a real scenario, this would generate the file to S3 or a local temp directory and email it.
           // For MVP, we "generate" it by simply updating the history to signify it ran, and alerting the user.
-          
+
           const filters = {
-             startDate: dayjs().subtract(1, 'month').format('YYYY-MM-DD'),
-             endDate: dayjs().format('YYYY-MM-DD')
+            startDate: dayjs().subtract(1, 'month').format('YYYY-MM-DD'),
+            endDate: dayjs().format('YYYY-MM-DD')
           };
-          
+
           // Actually getting the data verifies it works without crashing
           await reportService.getReportData(schedule.userId, schedule.reportType, filters);
-          
+
           // Log History for Audit (similar to what happens in exportTo...)
           await require('../models/ReportHistory').create({
             userId: schedule.userId,
@@ -149,7 +149,7 @@ cron.schedule('* * * * *', async () => {
 
         // Update Next Run Date
         schedule.lastRunAt = new Date();
-        
+
         const nextDate = dayjs(schedule.nextRunAt);
         switch (schedule.frequency) {
           case 'Weekly': schedule.nextRunAt = nextDate.add(1, 'week').toDate(); break;
@@ -169,7 +169,7 @@ cron.schedule('* * * * *', async () => {
           priority: 'High',
           actionUrl: '/reports'
         });
-        
+
         // Deactivate schedule temporarily to avoid infinite failure loops
         schedule.isActive = false;
         await schedule.save();
