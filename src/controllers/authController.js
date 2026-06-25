@@ -129,15 +129,12 @@ const register = asyncHandler(async (req, res) => {
   }
 
   // Check if OTP is verified
-  // BYPASS OTP FOR NOW
-  /*
   const otpRecord = await Otp.findOne({ email, isVerified: true });
   
   if (!otpRecord) {
     res.status(400);
     throw new Error('Email not verified. Please verify your email first.');
   }
-  */
 
   // Hash password
   const salt = await bcrypt.genSalt(10);

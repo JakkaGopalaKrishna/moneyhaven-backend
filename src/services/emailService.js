@@ -1,36 +1,5 @@
-const nodemailer = require("nodemailer");
-const dns = require("dns");
-
-// Force Node.js to prefer IPv4 over IPv6
-dns.setDefaultResultOrder("ipv4first");
-
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  family: 4, // Force IPv4
-
-  auth: {
-    user: process.env.EMAIL || process.env.EMAIL_USER,
-    pass: process.env.EMAIL_KEY || process.env.EMAIL_PASS,
-  },
-
-  connectionTimeout: 30000,
-  greetingTimeout: 30000,
-  socketTimeout: 30000,
-
-  tls: {
-    rejectUnauthorized: false,
-    minVersion: "TLSv1.2",
-  },
-});
-
 const sendOtpEmail = async (email, otp) => {
   try {
-    // Verify SMTP connection
-    await transporter.verify();
-    console.log("SMTP server connected.");
-
     const htmlTemplate = `
       <div style="font-family:'Inter',Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;background:#ffffff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.05);border:1px solid #f0f0f0;">
         <div style="text-align:center;margin-bottom:30px;">
@@ -63,23 +32,42 @@ const sendOtpEmail = async (email, otp) => {
       </div>
     `;
 
-    await transporter.sendMail({
-      from: `"MoneyHaven" <${process.env.EMAIL || process.env.EMAIL_USER}>`,
-      to: email,
+    const payload = {
+      sender: { 
+        name: "MoneyHaven", 
+        email: process.env.EMAIL_USER || "noreply@moneyhaven.com" 
+      },
+      to: [{ email: email }],
       subject: "MoneyHaven - Email Verification",
-      text: `Your verification OTP is ${otp}. This OTP is valid for 5 minutes.`,
-      html: htmlTemplate,
+      htmlContent: htmlTemplate
+    };
+
+    const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+      method: "POST",
+      headers: {
+        "accept": "application/json",
+        "api-key": process.env.BREVO_API_KEY,
+        "content-type": "application/json"
+      },
+      body: JSON.stringify(payload)
     });
 
-    console.log("OTP email sent successfully.");
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(errorText);
+    }
+
+    const data = await response.json();
+    console.log("OTP email sent successfully via Brevo. Message ID:", data.messageId);
 
     return true;
   } catch (error) {
-    console.error("Error sending email:", error);
+    console.error("Error sending email via Brevo REST API:", error.message);
 
+    // Fallback logging for Development if API Key is missing
     if (
       process.env.NODE_ENV !== "production" &&
-      !(process.env.EMAIL || process.env.EMAIL_USER)
+      !process.env.BREVO_API_KEY
     ) {
       console.log("Development Mode OTP:", otp);
       return true;
