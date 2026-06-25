@@ -1,8 +1,14 @@
 const nodemailer = require('nodemailer');
+const dns = require("dns");
+
 
 const sendOtpEmail = async (email, otp) => {
   try {
+    dns.setDefaultResultOrder("ipv4first");
     const transporter = nodemailer.createTransport({
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
       service: 'gmail',
       auth: {
         user: process.env.EMAIL || process.env.EMAIL_USER,
