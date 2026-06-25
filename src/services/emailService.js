@@ -60,18 +60,18 @@ const sendOtpEmail = async (email, otp) => {
     }
 
     const data = await response.json();
-    console.log("OTP email sent successfully via Brevo. Message ID:", data.messageId);
+    // console.log("OTP email sent successfully via Brevo. Message ID:", data.messageId);
 
     return true;
   } catch (error) {
-    console.error("Error sending email via Brevo REST API:", error.message);
+    // console.error("Error sending email via Brevo REST API:", error.message);
 
     // Fallback logging for Development if API Key is missing
     if (
       process.env.NODE_ENV !== "production" &&
       !process.env.BREVO_API_KEY
     ) {
-      console.log("Development Mode OTP:", otp);
+      // console.log("Development Mode OTP:", otp);
       return true;
     }
 
