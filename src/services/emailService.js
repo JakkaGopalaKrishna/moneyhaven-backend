@@ -16,9 +16,9 @@ const sendOtpEmail = async (email, otp) => {
           </p>
 
           <div style="margin:30px 0;">
-            <span style="font-size:36px;font-weight:bold;letter-spacing:8px;color:#2563eb;background:#eff6ff;padding:20px 30px;border-radius:10px;border:2px dashed #bfdbfe;">
+            <div style="display:inline-block; font-size:32px; font-weight:bold; letter-spacing:6px; color:#2563eb; background:#eff6ff; padding:16px 24px; border-radius:10px; border:2px dashed #bfdbfe;">
               ${otp}
-            </span>
+            </div>
           </div>
 
           <p>
@@ -33,9 +33,9 @@ const sendOtpEmail = async (email, otp) => {
     `;
 
     const payload = {
-      sender: { 
-        name: "MoneyHaven", 
-        email: process.env.EMAIL_USER || "noreply@moneyhaven.com" 
+      sender: {
+        name: "MoneyHaven",
+        email: process.env.EMAIL || "noreply@moneyhaven.com"
       },
       to: [{ email: email }],
       subject: "MoneyHaven - Email Verification",
