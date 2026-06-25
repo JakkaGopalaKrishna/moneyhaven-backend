@@ -11,8 +11,8 @@ const sendOtpEmail = async (email, otp) => {
           <h2>Verify Your Email Address</h2>
 
           <p>
-            Thank you for signing up with MoneyHaven.
-            Use the OTP below to verify your email.
+            Thank you for starting your journey with MoneyHaven.<br>
+            Please use the secure verification code below to complete your registration.
           </p>
 
           <div style="margin:30px 0;">
@@ -22,12 +22,14 @@ const sendOtpEmail = async (email, otp) => {
           </div>
 
           <p>
-            This OTP expires in <b>5 minutes</b>.
+            This code will securely expire in <b>5 minutes</b>.<br>
+            If you did not request this, please safely ignore this email.
           </p>
         </div>
 
-        <div style="text-align:center;color:#999;font-size:12px;margin-top:25px;">
-          © ${new Date().getFullYear()} MoneyHaven
+        <div style="text-align:center;color:#999;font-size:12px;margin-top:25px;line-height:1.5;">
+          © ${new Date().getFullYear()} MoneyHaven. All rights reserved.<br>
+          Built with 💙 for personal finance.
         </div>
       </div>
     `;
@@ -38,7 +40,7 @@ const sendOtpEmail = async (email, otp) => {
         email: process.env.EMAIL || "noreply@moneyhaven.com"
       },
       to: [{ email: email }],
-      subject: "MoneyHaven - Email Verification",
+      subject: "MoneyHaven - Verify Your Email",
       htmlContent: htmlTemplate
     };
 
