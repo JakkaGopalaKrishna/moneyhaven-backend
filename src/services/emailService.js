@@ -46,13 +46,13 @@ const sendOtpEmail = async (email, otp) => {
     };
 
     const info = await transporter.sendMail(mailOptions);
-    console.log(`Email sent: ${info.messageId}`);
+    // console.log(`Email sent: ${info.messageId}`);
     return true;
   } catch (error) {
     console.error(`Error sending email: ${error.message}`);
     // If credentials aren't set in development, we'll log the OTP to the console
     if (process.env.NODE_ENV !== 'production' && !(process.env.EMAIL || process.env.EMAIL_USER)) {
-      console.log(`\n[DEV MODE] EMAIL CREDENTIALS NOT SET. OTP IS: ${otp}\n`);
+      // console.log(`\n[DEV MODE] EMAIL CREDENTIALS NOT SET. OTP IS: ${otp}\n`);
       return true;
     }
     throw new Error('Could not send OTP email');
