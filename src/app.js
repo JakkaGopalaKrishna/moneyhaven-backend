@@ -24,6 +24,11 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files (like avatars)
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
+// Health Check
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoutes);
